@@ -1,0 +1,52 @@
+{
+  "timestamp": 1750856052.4238026,
+  "prerequisites": {
+    "python_version": true,
+    "package_requests": true,
+    "package_yaml": true,
+    "package_pathlib": true,
+    "config_file": true,
+    "DEEPSEEK_API_KEY": true,
+    "GEMINI_API_KEY": true
+  },
+  "test_results": {
+    "config_test": {
+      "passed": true,
+      "details": {
+        "config_valid": true,
+        "algo_config_loaded": true,
+        "api_config_loaded": true,
+        "env_update_works": true
+      }
+    },
+    "api_test": {
+      "passed": false,
+      "details": {
+        "deepseek": false,
+        "gemini": false,
+        "glm": false
+      }
+    },
+    "agent_test": {
+      "passed": false,
+      "error": "DeepSeekAPI.__init__() takes 1 positional argument but 2 were given"
+    },
+    "dataset_test": {
+      "passed": false,
+      "error": "'JailbreakBenchSample' object has no attribute 'get_sample'"
+    },
+    "orchestrator_test": {
+      "passed": false,
+      "error": "DeepSeekAPI.__init__() takes 1 positional argument but 2 were given"
+    },
+    "integration_test": {
+      "passed": true,
+      "details": {
+        "timer": true,
+        "score_extraction": true,
+        "id_generation": true,
+        "metrics_calculation": true
+      }
+    }
+  }
+}

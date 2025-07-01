@@ -1,0 +1,26 @@
+# Tempest Framework Dependencies
+# 基于《Tempest: Automatic Multi-Turn Jailbreaking of Large Language Models with Tree Search》论文的实现
+
+# 核心依赖
+requests>=2.31.0
+python-dotenv>=1.0.0
+
+# 数据处理
+numpy>=1.24.0
+pandas>=2.0.0
+
+# 日志和配置
+pyyaml>=6.0
+
+# 可选：用于更高级的文本处理
+# transformers>=4.30.0
+# torch>=2.0.0
+
+# 开发和测试
+pytest>=7.0.0
+pytest-cov>=4.0.0
+
+# 代码质量
+black>=23.0.0
+flake8>=6.0.0
+mypy>=1.0.0

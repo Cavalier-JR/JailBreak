@@ -1,14 +1,35 @@
 import pandas as pd
 import random
+import os
 from openai import OpenAI
 import time
+from dotenv import load_dotenv
+
+# 加载环境变量
+load_dotenv()
 
 # ==================== 0. 配置 ====================
-# 请在此处填入您的个人信息
+# API配置从环境变量读取
 # ===============================================
 
-# 您的OpenRouter API密钥
-OPENROUTER_API_KEY = "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"
+# 支持的API配置
+API_CONFIGS = {
+    "openrouter": {
+        "base_url": "https://openrouter.ai/api/v1",
+        "model": "deepseek/deepseek-r1-0528:free",
+        "api_key_env": "OPENROUTER_API_KEY"
+    },
+    "ppio": {
+        "base_url": "https://api.ppinfra.com/v3/openai",
+        "model": "deepseek/deepseek-v3-0324",
+        "api_key_env": "PPIO_API_KEY"
+    },
+    "kimi": {
+        "base_url": "https://api.moonshot.cn/v1",
+        "model": "moonshot-v1-8k",
+        "api_key_env": "KIMI_API_KEY"
+    }
+}
 
 # ===============================================
 # 配置结束
@@ -16,19 +37,59 @@ OPENROUTER_API_KEY = "sk-or-v1-c55dc1f396621dc22ffcacbdef53fb72207eb75d1609c1770
 
 # ==================== 1. 模型交互模块 ====================
 
-def call_model(prompt: str) -> str:
+def select_api():
+    """
+    选择要使用的API
+    """
+    print("\n🎯 选择API服务:")
+    print("="*25)
+    print("1. OpenRouter (DeepSeek R1)")
+    print("2. PPIO (DeepSeek V3)")
+    print("3. Kimi (Moonshot V1 8K)")
+    
+    while True:
+        try:
+            choice = input("\n请选择API (1-3, 默认1): ").strip() or "1"
+            choice_num = int(choice)
+            
+            if choice_num == 1:
+                return "openrouter"
+            elif choice_num == 2:
+                return "ppio"
+            elif choice_num == 3:
+                return "kimi"
+            else:
+                print("❌ 无效选择，请输入 1-3")
+        except ValueError:
+            print("❌ 请输入有效的数字")
+
+
+def call_model(prompt: str, api_choice: str = "openrouter") -> str:
     """
     调用模型并返回回复
     """
-    if not OPENROUTER_API_KEY or "sk-or-v1" not in OPENROUTER_API_KEY:
-        return "错误：API密钥未设置或格式不正确，无法调用模型。"
+    if api_choice not in API_CONFIGS:
+        return f"错误：不支持的API选择: {api_choice}"
+    
+    config = API_CONFIGS[api_choice]
+    api_key = os.getenv(config["api_key_env"])
+    
+    if not api_key:
+        return f"错误：{config['api_key_env']} 环境变量未设置，无法调用模型。"
     
     try:
-        client = OpenAI(base_url="https://openrouter.ai/api/v1", api_key=OPENROUTER_API_KEY)
+        # 对于Kimi API，需要添加完整的endpoint路径
+        if api_choice == "kimi":
+            client = OpenAI(base_url=config["base_url"], api_key=api_key)
+        else:
+            client = OpenAI(base_url=config["base_url"], api_key=api_key)
+        
         completion = client.chat.completions.create(
-            model="deepseek/deepseek-r1-0528:free",
+            model=config["model"],
             messages=[{"role": "user", "content": prompt}],
         )
+        # 添加API调用后的等待时间
+        time.sleep(20.0)
         return completion.choices[0].message.content
     except Exception as e:
         return f"错误：API调用失败。详情: {e}"
@@ -39,6 +100,10 @@ def call_model(prompt: str) -> str:
 def main():
     """脚本的主入口函数"""
     print("===== 两次对话模型脚本已启动 =====")
+    
+    # 选择API服务
+    api_choice = select_api()
+    print(f"\n已选择API: {API_CONFIGS[api_choice]['model']}")
     
     # 获取用户输入的原始问题
     user_question = input("\n请输入您要提问的内容: ").strip()
@@ -64,7 +129,7 @@ def main():
     print("正在调用模型进行第一次对话...")
     
     # 调用模型进行第一次对话
-    first_response = call_model(first_prompt)
+    first_response = call_model(first_prompt, api_choice)
     
     print("\n第一次对话完成！")
     print("模型返回的修改后语句:")
@@ -90,7 +155,7 @@ def main():
     print("正在调用模型进行第二次对话...")
     
     # 调用模型进行第二次对话
-    second_response = call_model(final_prompt)
+    second_response = call_model(final_prompt, api_choice)
     
     print("\n第二次对话完成！")
     print("模型第二次对话的结果:")
